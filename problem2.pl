@@ -1,3 +1,31 @@
+% puzzle problem
+
+% Implement the A* algorithm to solve the puzzle problem
+% The puzzle problem is to move the blank tile to the goal state
+% given start and goal , get the possible paths
+
+%% input design list of cells
+cell(X, Y, Color).  %% X: row number; Y: column number; Color: color of the cell
+% 
+
+
+
+% N is the number of rows and M is the number of columns
+% Start is the start state of the board
+% Board is the board with the colors of the cells
+% Path is the path from the start state to the goal state
+% The path is a list of cells
+
+start_game(N, M, Start, Board, Path):-
+    search([[Start, [], 0, 0, 0]], [], Board, Path).
+
+
+
+
+
+    
+
+
 search(Open, Closed, Goal):-
     getBestState(Open, [CurrentState,Parent,G,H,F], _), % Step 1
     CurrentState = Goal, % Step 2
@@ -50,6 +78,8 @@ getNextState([State,_,G,_,_],Open,Closed,Goal,[Next,State,NewG,NewH,NewF]):-
     ( not(member([Next,_,_,_,_], Open)) ; memberButBetter(Next,Open,NewF) ),
     ( not(member([Next,_,_,_,_],Closed));memberButBetter(Next,Closed,NewF)).
 
+
+
 memberButBetter(Next, List, NewF):-
     findall(F, member([Next,_,_,_,F], List), Numbers),
     min_list(Numbers, MinOldF),
@@ -58,14 +88,39 @@ memberButBetter(Next, List, NewF):-
 
 
 
-% will be changed according to the problem
-calculateH([], [], 0):- !.
-calculateH([Head|T1], [Head|T2], Hvalue):-
-% !, calculateH(T1, T2, Hvalue).
-% calculateH([_|T1], [_|T2], Hvalue):-
-% calculateH(T1, T2, Count),
-% Hvalue is Count + 1.
+calculateH(State, State, 0); !.
+calculateH(State, Goal, H):-
+    State = cell(X1, Y1, _),
+    Goal = cell(X2, Y2, _),
+    H is abs(X1 - X2) + abs(Y1 - Y2).
 
 
-% will be changed according to the problem
-move(State, Next, 1):-
+
+% get the next moves of the current state
+move(cell(X1, Y1, Color), cell(X2, Y2, Color), N, M):-
+    X2 is X1 + 1, Y2 is Y1,
+    isValid(cell(X2, Y2, _), N, M).
+
+move(cell(X1, Y1, Color), cell(X2, Y2, Color), N, M):-
+    X2 is X1 - 1, Y2 is Y1,
+    isValid(cell(X2, Y2, _), N, M).
+
+move(cell(X1, Y1, Color), cell(X2, Y2, Color), N, M):-
+    X2 is X1, Y2 is Y1 + 1,
+    isValid(cell(X2, Y2, _), N, M).
+
+move(cell(X1, Y1, Color), cell(X2, Y2, Color), N, M):-
+    X2 is X1, Y2 is Y1 - 1,
+    isValid(cell(X2, Y2, _), N, M).
+
+isValid(Cell, _, _) :- \
+
+isValid(cell(X, Y, _), N, M):-
+    X >= 0, X < N,
+    Y >= 0, Y < M.
+
+
+
+
+
+
