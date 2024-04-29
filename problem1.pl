@@ -1,8 +1,8 @@
 % Input
 input([
-    [red, red, blue],
-    [red, red, yellow],
-    [yellow, yellow, yellow],
+    [red, red, red],
+    [red, red,red],
+    [blue, yellow, yellow],
     [yellow, yellow, yellow]
 ]).
 
@@ -18,6 +18,13 @@ valid(X,Y) :- input(Board), length(Board, N),nth1(1, Board, FirstRow), length(Fi
 
 last(X, [X]) :- !.
 last(X, [_|T]) :- last(X, T).
+
+
+
+first(X, [X|_]) :- !.
+
+
+
 % Define colors
 color(red).
 color(yellow).
@@ -51,7 +58,9 @@ cycle_exists(Color, Path):-
 % Search for color cycles
 search_color_cycles(Color) :-
     cycle_exists(Color, Path),
-    write('Found a '), write(Color), write(' cycle: '), write(Path), nl, !.
+    first([X,Y], Path),
+    append(Path, [X,Y], Path1),
+    write('Found a '), write(Color), write(' cycle: '), write(Path1), nl, !.
 
 search_color_cycles(_).
 
