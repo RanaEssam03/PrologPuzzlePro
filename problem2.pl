@@ -4,9 +4,22 @@
 % The puzzle problem is to move the blank tile to the goal state
 % given start and goal , get the possible paths
 
+:- dynamic cell/3.
+
+
+
+
 %% input design list of cells
-cell(X, Y, Color).  %% X: row number; Y: column number; Color: color of the cell
+%cell(_, _, _).  %% X: row number; Y: column number; Color: color of the cell
 % 
+
+% Add a new cell
+add_cell(X,Y,Color) :-
+    assert(cell(X, Y, Color)).
+
+% Delete a cell
+delete_cell(X,Y,Color) :-
+    retract(cell(X, Y, Color)).
 
 
 
@@ -16,14 +29,37 @@ cell(X, Y, Color).  %% X: row number; Y: column number; Color: color of the cell
 % Path is the path from the start state to the goal state
 % The path is a list of cells
 
-start_game(N, M, Start, Board, Path):-
-    search([[Start, [], 0, 0, 0]], [], Board, Path).
+generate_cells(_,_,[]).
+
+
+generate_cells(Current,M,[H|T]):-
+    X is Current div M + 1,
+    Y is Current mod M + 1,
+    add_cell(X,Y,H),
+    Next is Current + 1,
+    generate_cells(Next,M,T).
+
+
+delete_cells(_,_,[]).
+
+
+delete_cells(Current,M,[H|T]):-
+    X is Current div M + 1,
+    Y is Current mod M + 1,
+    delete_cell(X,Y,H),
+    Next is Current + 1,
+    delete_cells(Next,M,T).
+     
 
 
 
 
+start_game(_, M, Start, Goal,Board):-
+    generate_cells(0,M,Board),
+    search([[Start, null, 0, 0, 0]], [],Goal),
+    delete_cells(0,M,Board).
 
-    
+
 
 
 search(Open, Closed, Goal):-
@@ -39,18 +75,20 @@ search(Open, Closed, Goal):-
     append(Closed, [CurrentNode], NewClosed), % Step 5.1
     search(NewOpen, NewClosed, Goal). % Step 5.2
 
+
 % Implementation of step 3 to get the next states
 getAllValidChildren(Node, Open, Closed, Goal, Children):-
     findall(Next, getNextState(Node,Open,Closed,Goal,Next),
     Children).
 
 getNextState([State,_,G,_,_],Open,Closed,Goal,[Next,State,NewG,NewH,NewF]):-
-    move(State, Next, MoveCost),
+    move(State, Next),
     calculateH(Next, Goal, NewH),
-    NewG is G + MoveCost,
+    NewG is G + 1,
     NewF is NewG + NewH,
     not(member([Next,_,_,_,_], Open)),
     not(member([Next,_,_,_,_], Closed)).
+
 
 % Implementation of addChildren and getBestState
 addChildren(Children, Open, NewOpen):-
@@ -60,35 +98,30 @@ getBestState(Open, BestChild, Rest):-
     findMin(Open, BestChild),
     delete(Open, BestChild, Rest).
 
+
+
+printSolution([cell(X,Y,_), null, 0, 0, 0],_):-
+    write([X,Y]),!.
+
+printSolution([cell(X,Y,_), Parent, _, _, _], Closed):-
+    member([Parent, GrandParent, PrevG, Ph, Pf], Closed),
+    printSolution([Parent, GrandParent, PrevG, Ph, Pf], Closed),
+    write(" -> "),write([X,Y]).
+
 % Implementation of the algorithm A*
 
 findMin([X], X):- !.
 findMin([Head|T], Min):-
     findMin(T, TmpMin),
-    Head = [_,_,_,HeadH,HeadF],
-    TmpMin = [_,_,_,TmpH,TmpF],
+    Head = [_,_,_,_,HeadF],
+    TmpMin = [_,_,_,_,TmpF],
     (TmpF < HeadF -> Min = TmpMin ; Min = Head).
 
 
-getNextState([State,_,G,_,_],Open,Closed,Goal,[Next,State,NewG,NewH,NewF]):-
-    move(State, Next, MoveCost),
-    calculateH(Next, Goal, NewH),
-    NewG is G + MoveCost,
-    NewF is NewG + NewH,
-    ( not(member([Next,_,_,_,_], Open)) ; memberButBetter(Next,Open,NewF) ),
-    ( not(member([Next,_,_,_,_],Closed));memberButBetter(Next,Closed,NewF)).
 
 
+calculateH(State, State, 0):- !.
 
-memberButBetter(Next, List, NewF):-
-    findall(F, member([Next,_,_,_,F], List), Numbers),
-    min_list(Numbers, MinOldF),
-    MinOldF > NewF.
-
-
-
-
-calculateH(State, State, 0); !.
 calculateH(State, Goal, H):-
     State = cell(X1, Y1, _),
     Goal = cell(X2, Y2, _),
@@ -97,30 +130,31 @@ calculateH(State, Goal, H):-
 
 
 % get the next moves of the current state
-move(cell(X1, Y1, Color), cell(X2, Y2, Color), N, M):-
+
+% Move right
+move(cell(X1, Y1, Color), cell(NewX,NewY,Color)):-
     X2 is X1 + 1, Y2 is Y1,
-    isValid(cell(X2, Y2, _), N, M).
+    cell(X2,Y2,Color),
+    NewX is X2,NewY is Y2.
 
-move(cell(X1, Y1, Color), cell(X2, Y2, Color), N, M):-
+% Move left
+move(cell(X1, Y1, Color), cell(NewX,NewY,Color)):-
     X2 is X1 - 1, Y2 is Y1,
-    isValid(cell(X2, Y2, _), N, M).
+    cell(X2,Y2,Color),
+    NewX is X2,NewY is Y2.
 
-move(cell(X1, Y1, Color), cell(X2, Y2, Color), N, M):-
+
+% Move down
+move(cell(X1, Y1, Color), cell(NewX,NewY,Color)):-
     X2 is X1, Y2 is Y1 + 1,
-    isValid(cell(X2, Y2, _), N, M).
+    cell(X2,Y2,Color),
+    NewX is X2,NewY is Y2.
 
-move(cell(X1, Y1, Color), cell(X2, Y2, Color), N, M):-
+% Move up
+move(cell(X1, Y1, Color), cell(NewX,NewY,Color)):-
     X2 is X1, Y2 is Y1 - 1,
-    isValid(cell(X2, Y2, _), N, M).
-
-isValid(Cell, _, _) :- \
-
-isValid(cell(X, Y, _), N, M):-
-    X >= 0, X < N,
-    Y >= 0, Y < M.
-
-
-
+    cell(X2,Y2,Color),
+    NewX is X2,NewY is Y2.
 
 
 
