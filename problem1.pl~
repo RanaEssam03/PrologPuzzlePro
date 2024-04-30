@@ -34,6 +34,7 @@ color(blue).
 % Define color of a cell
 color_of_cell([X,Y], Color) :-
    getBoard(Board),
+   write(Board),
     nth1(X, Board, Row),
     nth1(Y, Row, Color).
 
