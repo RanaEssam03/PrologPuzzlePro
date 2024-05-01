@@ -60,7 +60,7 @@ cycle_exists(Color, Path):-
 search_color_cycles(Color) :-
     cycle_exists(Color, Path),
     first([X,Y], Path),
-    append(Path, [X,Y], Path1),
+    append(Path, [[X,Y]], Path1),
     write('Found a '),
     write(Color),
     write(' cycle: '),
