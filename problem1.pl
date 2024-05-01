@@ -61,7 +61,10 @@ search_color_cycles(Color) :-
     cycle_exists(Color, Path),
     first([X,Y], Path),
     append(Path, [X,Y], Path1),
-    write('Found a '), write(Color), write(' cycle: '), write(Path1), nl, !.
+    write('Found a '),
+    write(Color),
+    write(' cycle: '),
+    write(Path1), nl, !.
 
 search_color_cycles(_).
 
@@ -74,7 +77,6 @@ find_color_cycles :-
 
 find_color_cycles :-
     write('No cycles exist.'), nl.
-
 
 
 
