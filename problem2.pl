@@ -4,11 +4,44 @@
 % this is the rule which represents the cell in the board
 %cell(X, Y, Color).  %% X: row number; Y: column number; Color: color of the cell
 
+% EX: start_game(2,2,cell(1,1,'R'),cell(2,2,'R'), ['R', 'G', 'R', 'R'] ).  
+% OR
+/* 
+5 ?- start_game.
+Please enter the number of rows:
+|: 4.
+
+Please enter the number of columns:
+|: 4.
+
+Please enter the board:
+|:  ['R', 'R', 'Y', 'Y', 'R', 'B', 'R', 'R', 'R', 'R', 'R',  'Y', 'B', 'R', 'B', 'Y'].     
+
+
+Please enter the start cell, as cell(x, y, Color):
+|: cell(1, 1, 'R').
+
+Please enter the goal cell:
+|: cell(2, 4, 'R').
+
+*/
+
+start_game:-
+    write("Please enter the number of rows: "), nl,
+    read(N), nl,
+    write("Please enter the number of columns: "), nl,
+    read(M), nl,
+    write("Please enter the board: "), nl,
+    read(Board), nl,
+    write("Please enter the start cell, as cell(x, y, Color): "), nl,
+    read(Start), nl,
+    write("Please enter the goal cell: "), nl,
+    read(Goal), nl,
+    start_game(N,M,Start,Goal,Board).
+
 
 % this is the main predicate to start the game which takes the N and M as the number of rows and columns
-% Start is the start state of the board and Goal is the goal state of the board
 
-% EX: start_game(2,2,cell(1,1,'R'),cell(2,2,'R'), ['R', 'G', 'R', 'R'] ).
 start_game(_, M, Start, Goal,Board):-
     generate_cells(0,M,Board),
     search([[Start, null, 0, 0, 0]], [],Goal),
