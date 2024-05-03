@@ -1,7 +1,12 @@
 :-dynamic board/1.
+:-dynamic check/1.
+%[[yellow,yellow,yellow,red],[blue,yellow,blue,yellow],[blue,blue,blue,yellow],[blue,blue,blue,yellow]].
+%[[red,red,red],[red,red,red],[blue,yellow,yellow],[yellow,yellow,yellow]].
 
 %Input
+
 input:-
+    retractall(board(_)),
     write("please enter your board"),nl,
     read(Value),
     assert(board(Value)).
@@ -61,25 +66,40 @@ search_color_cycles(Color) :-
     cycle_exists(Color, Path),
     first([X,Y], Path),
     append(Path, [[X,Y]], Path1),
-    write('Found a '),
-    write(Color),
-    write(' cycle: '),
-    write(Path1), nl, !.
+    retractall(check(_)),
+    assertz(check(true)),
+    output(Color,Path1),!.
 
 search_color_cycles(_).
 
-% Main predicate to find all color cycles
+print_path([]).
+print_path([H]):-
+    write(H).
+print_path([H|T]):-
+    write(H),
+    write('=>'),
+    print_path(T).
+
+output(Color,Path):-
+    write('Found a '),
+    write(Color),
+    write(' cycle: '),
+    print_path(Path), nl.
 find_color_cycles :-
     input(),
     color(Color),
     search_color_cycles(Color),
     fail.
+find_color_cycles.
 
-find_color_cycles :-
-    write('No cycles exist.'), nl.
+% Main predicate to find all color cycles
 
-
-
+find_cycle:-
+    retractall(check(_)),
+    assertz(check(false)),
+    find_color_cycles,
+        check(Bool),
+        (Bool == false -> write('No cycles exist.'), nl ; true).
 
 
 
